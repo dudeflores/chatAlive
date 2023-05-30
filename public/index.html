@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat en tiempo real</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+
+    #chat {
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    #messages {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    #messages li {
+      margin-bottom: 10px;
+    }
+
+    #message-form {
+      margin-top: 10px;
+    }
+
+    #input-message {
+      width: 70%;
+      padding: 5px;
+    }
+
+    button {
+      padding: 5px 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="chat">
+    <ul id="messages"></ul>
+    <form id="message-form">
+      <input id="input-message" autocomplete="off" />
+      <button>Enviar</button>
+    </form>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const messages = []; // Array para almacenar los mensajes
+
+    // Manejar el envío de mensajes
+    const form = document.getElementById('message-form');
+    const input = document.getElementById('input-message');
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const message = input.value.trim();
+      if (message) {
+        socket.emit('chat message', message);
+        input.value = '';
+      }
+    });
+
+    // Manejar la recepción de mensajes
+    const messagesList = document.getElementById('messages');
+    socket.on('chat message', (message) => {
+      const newMessage = {
+        text: message,
+        received: false, // Agregar propiedad "received"
+        read: false, // Agregar propiedad "read"
+      };
+      messages.push(newMessage);
+
+      // Actualizar la interfaz de usuario
+      renderMessages();
+    });
+
+    function renderMessages() {
+      messagesList.innerHTML = ''; // Limpiar la lista de mensajes
+
+      messages.forEach((message) => {
+        const li = document.createElement('li');
+        li.textContent = message.text;
+
+        if (message.received) {
+          li.style.fontWeight = 'bold'; // Estilo en línea para mensajes recibidos
+        }
+
+        if (message.read) {
+          li.style.color = 'green'; // Estilo en línea para mensajes leídos
+        }
+
+        messagesList.appendChild(li);
+      });
+    }
+  </script>
+</body>
+</html>
